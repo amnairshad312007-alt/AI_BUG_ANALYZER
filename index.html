@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Bug Report Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 flex flex-col items-center">
+
+    <div class="max-w-4xl w-full">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-blue-400">🐞 AI Bug Analyzer</h1>
+            <p class="text-slate-400 mt-2">LangGraph & Gemini Flash-powered Automated Bug Parsing Workflow</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700 mb-8">
+            <label for="bugInput" class="block font-semibold mb-2 text-slate-200">Raw Bug Description:</label>
+            <textarea id="bugInput" rows="4" 
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-200 focus:outline-none focus:border-blue-500" 
+                placeholder="e.g., When I click checkout on the cart page after applying a discount code, the screen freezes and returns a 500 internal server error..."></textarea>
+            
+            <button onclick="analyzeBug()" id="submitBtn" 
+                class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                Run Analysis Workflow 🚀
+            </button>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div id="loader" class="hidden text-center py-6">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+            <p class="text-slate-400 mt-2">Processing nodes: Analysis ➔ Severity ➔ Root Causes ➔ Formatting...</p>
+        </div>
+
+        <!-- Output Section -->
+        <div id="outputSection" class="hidden bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+            <h2 class="text-xl font-bold mb-4 text-emerald-400">Generated Structured Bug Report</h2>
+            <pre id="reportOutput" class="bg-slate-950 p-4 rounded-lg font-mono text-sm text-slate-300 overflow-x-auto whitespace-pre-wrap"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeBug() {
+            const input = document.getElementById('bugInput').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const loader = document.getElementById('loader');
+            const outputSection = document.getElementById('outputSection');
+            const reportOutput = document.getElementById('reportOutput');
+
+            if (!input.trim()) {
+                alert("Please enter a bug description.");
+                return;
+            }
+
+            submitBtn.disabled = true;
+            loader.classList.remove('hidden');
+            outputSection.classList.add('hidden');
+
+            try {
+                const response = await fetch('/analyze-bug', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description: input })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    reportOutput.textContent = data.formatted_report;
+                    outputSection.classList.remove('hidden');
+                } else {
+                    alert("Error: " + (data.detail || "Workflow execution failed."));
+                }
+            } catch (err) {
+                alert("Failed to connect to the backend server.");
+            } finally {
+                submitBtn.disabled = false;
+                loader.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
